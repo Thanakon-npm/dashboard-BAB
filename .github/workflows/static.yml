@@ -3,9 +3,12 @@ name: Deploy static content to Pages
 on:
   push:
     branches: ["main"]
-
-  # ช่วยให้สามารถกดสั่ง Run Deploy มือเองจากหน้า Actions บน GitHub ได้ด้วย
   workflow_dispatch:
+
+# ซ่อน Warning เรื่อง Node 20 Deprecation
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: false
 
 permissions:
   contents: read
