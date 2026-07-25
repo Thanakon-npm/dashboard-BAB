@@ -5,10 +5,9 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-# ซ่อน Warning เรื่อง Node 20 Deprecation
+# บังคับให้รัน Actions ทั้งหมดบน Node.js 24 เพื่อแก้ Warning
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: false
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: read
