@@ -5,7 +5,6 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-# บังคับให้รัน Actions ทั้งหมดบน Node.js 24 เพื่อแก้ Warning
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
