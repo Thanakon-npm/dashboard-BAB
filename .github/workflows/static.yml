@@ -4,6 +4,9 @@ on:
   push:
     branches: ["main"]
 
+  # ช่วยให้สามารถกดสั่ง Run Deploy มือเองจากหน้า Actions บน GitHub ได้ด้วย
+  workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
@@ -21,16 +24,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4
