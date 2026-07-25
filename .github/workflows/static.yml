@@ -33,9 +33,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 💡 เปลี่ยน ./dist เป็นโฟลเดอร์ที่เก็บไฟล์ index.html ของคุณ 
-          # เช่น ./public หรือ ./build (หากเก็บไว้นอกสุดอยู่แล้วให้ใช้ '.')
-          path: './dist'
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
