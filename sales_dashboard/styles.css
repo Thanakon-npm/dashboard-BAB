@@ -1,0 +1,596 @@
+/* ============================================
+   BAAN CHONG CAFE – Modern Dashboard Styles
+   ============================================ */
+
+:root {
+    --bg-base: #09090b;
+    --bg-surface: rgba(255, 255, 255, 0.025);
+    --bg-surface-hover: rgba(255, 255, 255, 0.055);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 8px;
+
+    /* Accent Colors */
+    --accent-blue: #60a5fa;
+    --accent-pink: #f472b6;
+    --accent-green: #4ade80;
+    --accent-amber: #fbbf24;
+    --accent-purple: #a78bfa;
+
+    /* Branch Colors */
+    --color-ari: #f472b6;
+    --color-ekkamai: #a78bfa;
+    --color-rama9: #4ade80;
+    --color-bangkhae: #fbbf24;
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ambient Glow */
+.ambient-glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.glow-1 {
+    top: -200px;
+    right: -100px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.12), transparent 70%);
+}
+
+.glow-2 {
+    bottom: -200px;
+    left: -100px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.08), transparent 70%);
+}
+
+/* Layout */
+.dashboard-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── Top Bar ─── */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo-mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(96, 165, 250, 0.3);
+}
+
+.top-bar h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.filters-area {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1rem;
+    border-radius: 50px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    transition: all 0.25s ease;
+}
+
+.filter-pill:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-surface-hover);
+}
+
+.filter-pill:focus-within {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
+}
+
+.filter-pill svg {
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+.filter-pill select {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 0.5rem;
+}
+
+.filter-pill select option {
+    background-color: #18181b;
+    color: var(--text-primary);
+}
+
+/* ─── KPI Cards ─── */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.7s ease-out;
+}
+
+.kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    background: var(--bg-surface-hover);
+    border-color: var(--border-hover);
+    box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.5);
+}
+
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.kpi-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+}
+
+.kpi-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-total {
+    background: rgba(244, 114, 182, 0.1);
+    color: var(--accent-pink);
+}
+
+.icon-avg {
+    background: rgba(167, 139, 250, 0.1);
+    color: var(--accent-purple);
+}
+
+.icon-best {
+    background: rgba(74, 222, 128, 0.1);
+    color: var(--accent-green);
+}
+
+.icon-forecast {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--accent-amber);
+}
+
+.kpi-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+}
+
+.kpi-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.kpi-change {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 50px;
+    margin-top: 0.5rem;
+    letter-spacing: 0.2px;
+    min-height: 1.4rem;
+    transition: all 0.3s ease;
+}
+
+.change-up {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
+}
+
+.change-down {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+}
+
+.change-neutral {
+    background: rgba(161, 161, 170, 0.1);
+    color: var(--text-secondary);
+}
+
+.filter-sep {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 0 0.1rem;
+}
+
+.filter-range {
+    gap: 0.4rem;
+}
+
+/* ─── Preset Shortcuts ─── */
+.presets-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.preset-btn {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+}
+
+.preset-btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    background: var(--bg-surface-hover);
+}
+
+.preset-btn.active {
+    background: rgba(96, 165, 250, 0.12);
+    border-color: rgba(96, 165, 250, 0.35);
+    color: var(--accent-blue);
+}
+
+/* ─── Ranking Table ─── */
+.ranking-section {
+    margin-top: 1.25rem;
+}
+
+.badge-amber {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--accent-amber);
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.ranking-table thead th {
+    padding: 0.6rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+.ranking-table th.text-right,
+.ranking-table td.text-right {
+    text-align: right;
+}
+
+.ranking-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    transition: background 0.15s ease;
+}
+
+.ranking-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.ranking-table tbody tr:hover {
+    background: var(--bg-surface-hover);
+}
+
+.ranking-table td {
+    padding: 0.85rem 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.rank-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 2rem;
+}
+
+.rank-1 { color: var(--accent-amber); }
+.rank-2 { color: var(--text-secondary); }
+.rank-3 { color: #c77d3a; }
+
+.branch-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.6rem;
+    flex-shrink: 0;
+}
+
+.branch-cell {
+    display: flex;
+    align-items: center;
+}
+
+.share-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    justify-content: flex-end;
+}
+
+.share-bar {
+    width: 60px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+}
+
+.share-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+/* ─── Bento Grid ─── */
+.bento-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    animation: fadeInUp 0.9s ease-out;
+}
+
+.bento-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.bento-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+
+.bento-card:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-surface-hover);
+}
+
+.bento-wide {
+    grid-column: 1 / -1;
+}
+
+.bento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.bento-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+}
+
+.bento-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 50px;
+    background: rgba(96, 165, 250, 0.1);
+    color: var(--accent-blue);
+}
+
+.badge-purple {
+    background: rgba(167, 139, 250, 0.1);
+    color: var(--accent-purple);
+}
+
+.badge-green {
+    background: rgba(74, 222, 128, 0.1);
+    color: var(--accent-green);
+}
+
+.canvas-wrapper {
+    position: relative;
+    height: 420px; /* Base height for small charts */
+    width: 100%;
+    flex: 1;
+}
+
+.bento-wide .canvas-wrapper {
+    flex: 0 0 380px; /* Taller height for the wide trend chart, don't shrink */
+    height: 380px;
+}
+
+/* ─── Footer ─── */
+.dashboard-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.dashboard-footer p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1100px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .kpi-value {
+        font-size: 1.4rem;
+    }
+
+    .canvas-wrapper {
+        height: 280px;
+    }
+}
