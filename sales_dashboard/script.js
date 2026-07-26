@@ -22,6 +22,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             BangKhae: { label: 'บางแค',    color: colors.bangkhae }
         };
 
+        // ── Thai month names for generating future labels ──
+        const thaiMonthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+        // Parse Thai month label -> { monthIdx (0-11), year (Buddhist Era) }
+        const parseThaiMonth = (label) => {
+            const parts = label.split('/');
+            if (parts.length !== 2) return null;
+            const monthStr = parts[0].trim();
+            const year = parseInt(parts[1].trim());
+            const monthIdx = thaiMonthNames.indexOf(monthStr);
+            if (monthIdx === -1 || isNaN(year)) return null;
+            return { monthIdx, year };
+        };
+
+        // Generate Thai month label from monthIdx and year
+        const makeThaiLabel = (monthIdx, year) => `${thaiMonthNames[monthIdx]}/${year}`;
+
         const formatCurrency = (v) => {
             if (v == null) return '—';
             return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(v);
@@ -37,7 +54,171 @@ document.addEventListener('DOMContentLoaded', async () => {
         const getAbsTotal = (absIdx, branches) =>
             branches.reduce((s, b) => s + (originalData.branches[b]?.[absIdx] ?? 0), 0);
 
-        // Forecast: seasonal ratio method (YoY) — more accurate than linear regression for seasonal data
+        // ══════════════════════════════════════════════════════
+        // FORECAST ENGINE — 3 methods
+        // ══════════════════════════════════════════════════════
+
+        /**
+         * Generate future month labels starting after the last month in data.
+         * @param {number} count - number of months to generate
+         * @returns {string[]} array of Thai month labels
+         */
+        const generateFutureLabels = (count) => {
+            const lastLabel = originalData.months[originalData.months.length - 1];
+            const parsed = parseThaiMonth(lastLabel);
+            if (!parsed) return [];
+            const labels = [];
+            let m = parsed.monthIdx;
+            let y = parsed.year;
+            for (let i = 0; i < count; i++) {
+                m++;
+                if (m > 11) { m = 0; y++; }
+                labels.push(makeThaiLabel(m, y));
+            }
+            return labels;
+        };
+
+        /**
+         * Calculate how many months until end of 2570 (Dec 2570).
+         */
+        const monthsUntilEnd2570 = () => {
+            const lastLabel = originalData.months[originalData.months.length - 1];
+            const parsed = parseThaiMonth(lastLabel);
+            if (!parsed) return 12;
+            const lastAbsMonth = parsed.year * 12 + parsed.monthIdx;
+            const target = 2570 * 12 + 11; // ธ.ค./2570
+            return Math.max(1, target - lastAbsMonth);
+        };
+
+        /**
+         * Seasonal YoY forecast for a single branch.
+         * Uses the ratio pattern from 12 months ago to project forward.
+         */
+        const forecastSeasonalBranch = (branchData, count) => {
+            const n = branchData.length;
+            const result = [];
+            const extendedData = [...branchData];
+
+            for (let i = 0; i < count; i++) {
+                const currentIdx = n + i;
+                const lastYearIdx = currentIdx - 12;
+                const prevLastYearIdx = currentIdx - 1 - 12;
+
+                if (lastYearIdx >= 0 && lastYearIdx < extendedData.length &&
+                    prevLastYearIdx >= 0 && prevLastYearIdx < extendedData.length &&
+                    extendedData[prevLastYearIdx] > 0) {
+                    // Seasonal ratio: next = current * (lastYear[next] / lastYear[current])
+                    const ratio = extendedData[lastYearIdx] / extendedData[prevLastYearIdx];
+                    const predicted = extendedData[currentIdx - 1] * ratio;
+                    result.push(Math.max(0, Math.round(predicted)));
+                } else {
+                    // Fallback: linear regression over last 6 points
+                    const recent = extendedData.slice(-6);
+                    const ln = recent.length;
+                    let sX = 0, sY = 0, sXY = 0, sXX = 0;
+                    for (let j = 0; j < ln; j++) {
+                        sX += j + 1; sY += recent[j]; sXY += (j + 1) * recent[j]; sXX += (j + 1) ** 2;
+                    }
+                    const m = (ln * sXY - sX * sY) / (ln * sXX - sX * sX);
+                    const c = (sY - m * sX) / ln;
+                    const next = m * (ln + 1) + c;
+                    result.push(Math.max(0, Math.round(next)));
+                }
+                extendedData.push(result[result.length - 1]);
+            }
+            return result;
+        };
+
+        /**
+         * Linear Trend forecast for a single branch.
+         * Uses linear regression on the most recent 12 data points (or all available).
+         */
+        const forecastLinearBranch = (branchData, count) => {
+            const windowSize = Math.min(12, branchData.length);
+            const recent = branchData.slice(-windowSize);
+            const n = recent.length;
+            let sX = 0, sY = 0, sXY = 0, sXX = 0;
+            for (let i = 0; i < n; i++) {
+                const x = i + 1;
+                sX += x; sY += recent[i]; sXY += x * recent[i]; sXX += x * x;
+            }
+            const slope = (n * sXY - sX * sY) / (n * sXX - sX * sX);
+            const intercept = (sY - slope * sX) / n;
+
+            const result = [];
+            for (let i = 0; i < count; i++) {
+                const x = n + i + 1;
+                result.push(Math.max(0, Math.round(slope * x + intercept)));
+            }
+            return result;
+        };
+
+        /**
+         * Moving Average forecast for a single branch.
+         * Uses 3-month rolling average, iteratively extending.
+         */
+        const forecastMovingAvgBranch = (branchData, count) => {
+            const result = [];
+            const extended = [...branchData];
+            const window = 3;
+            for (let i = 0; i < count; i++) {
+                const slice = extended.slice(-window);
+                const avg = slice.reduce((s, v) => s + v, 0) / slice.length;
+                result.push(Math.max(0, Math.round(avg)));
+                extended.push(result[result.length - 1]);
+            }
+            return result;
+        };
+
+        /**
+         * Generate full forecast data for all branches.
+         * @returns {{ labels, branchForecasts: { [key]: number[] }, totalForecasts, confidenceBand: {upper, lower} }}
+         */
+        const generateForecast = (method, horizonMonths, branches) => {
+            const labels = generateFutureLabels(horizonMonths);
+
+            const branchForecasts = {};
+            for (const b of Object.keys(originalData.branches)) {
+                const data = originalData.branches[b];
+                switch (method) {
+                    case 'seasonal':
+                        branchForecasts[b] = forecastSeasonalBranch(data, horizonMonths);
+                        break;
+                    case 'linear':
+                        branchForecasts[b] = forecastLinearBranch(data, horizonMonths);
+                        break;
+                    case 'moving_avg':
+                        branchForecasts[b] = forecastMovingAvgBranch(data, horizonMonths);
+                        break;
+                    default:
+                        branchForecasts[b] = forecastSeasonalBranch(data, horizonMonths);
+                }
+            }
+
+            // Total forecast (sum across selected branches)
+            const totalForecasts = labels.map((_, i) =>
+                branches.reduce((s, b) => s + (branchForecasts[b]?.[i] ?? 0), 0)
+            );
+
+            // Confidence Band: ±1 std dev based on historical residuals
+            const historicalData = originalData.total_monthly;
+            const n = historicalData.length;
+            const mean = historicalData.reduce((s, v) => s + v, 0) / n;
+            const variance = historicalData.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / n;
+            const stdDev = Math.sqrt(variance);
+            // Widen confidence band as forecast goes further out
+            const confidenceBand = {
+                upper: totalForecasts.map((v, i) => Math.round(v + stdDev * (1 + i * 0.08))),
+                lower: totalForecasts.map((v, i) => Math.max(0, Math.round(v - stdDev * (1 + i * 0.08))))
+            };
+
+            return { labels, branchForecasts, totalForecasts, confidenceBand };
+        };
+
+        // ══════════════════════════════════════════════════════
+        // Existing dashboard forecast (single next-month)
+        // ══════════════════════════════════════════════════════
+
         const predictNextYoY = (totalTrend, fromIdx, branches) => {
             const lastAbsIdx = fromIdx + totalTrend.length - 1;
             const nextAbsIdx = lastAbsIdx + 1;
@@ -125,7 +306,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const branchFilter = document.getElementById('branchFilter');
         const fromFilter   = document.getElementById('fromFilter');
         const toFilter     = document.getElementById('toFilter');
-        let trendChart, barChart, doughnutChart;
+        const forecastHorizonEl = document.getElementById('forecastHorizon');
+        const forecastMethodEl  = document.getElementById('forecastMethod');
+        let trendChart, barChart, doughnutChart, forecastChartInstance;
 
         // Populate range selects
         originalData.months.forEach((m, i) => {
@@ -215,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 avgChangeLabel = 'เทียบปีก่อน';
             }
 
-            // Forecast (YoY seasonal ratio)
+            // Forecast (YoY seasonal ratio) — single next month
             let predicted = null;
             if (months.length >= 2) predicted = predictNextYoY(totalTrend, fromIdx, branches);
             const forecastChangePct = (predicted !== null && totalTrend.length > 0)
@@ -257,6 +440,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             renderRanking(branches, bTotals, totalSales, yoyTrend, yoyFrom);
             renderCharts(months, branchData, branches, bTotals, totalTrend, predicted, yoyTrend, yoyFrom);
+            updateForecastSection(branches);
         };
 
         // ─── Ranking Table ───
@@ -374,8 +558,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // YoY comparison line (dashed grey) — only for multi-month views
             if (!isSingleMonth && yoyTrend && yoyTrend.length === months.length) {
-                const yoyLabels = originalData.months.slice(yoyFrom, yoyFrom + months.length)
-                    .map(m => m.replace('/2568', '').replace('/2569', ''));
                 trendDatasets.push({
                     label: 'ปีก่อนหน้า',
                     data: yoyTrend,
@@ -511,6 +693,328 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         };
 
+        // ══════════════════════════════════════════════════════
+        // FORECAST SECTION — Render
+        // ══════════════════════════════════════════════════════
+
+        const updateForecastSection = (branches) => {
+            const method = forecastMethodEl.value;
+            const horizonRaw = forecastHorizonEl.value;
+            const horizonMonths = horizonRaw === 'max' ? monthsUntilEnd2570() : parseInt(horizonRaw);
+
+            const forecast = generateForecast(method, horizonMonths, branches);
+
+            // ── Summary KPIs ──
+            const totalForecast = forecast.totalForecasts.reduce((s, v) => s + v, 0);
+            document.getElementById('fc-total-val').textContent = formatCurrencyShort(totalForecast);
+
+            // Compare with same-length recent actual period
+            const recentActualTotal = originalData.total_monthly.slice(-horizonMonths).reduce((s, v) => s + v, 0);
+            if (recentActualTotal > 0) {
+                const changePct = ((totalForecast - recentActualTotal) / recentActualTotal * 100);
+                setChangeEl('fc-total-change', changePct, 'เทียบช่วงล่าสุด');
+            } else {
+                document.getElementById('fc-total-change').textContent = '';
+            }
+
+            // Peak month
+            let peakIdx = 0;
+            for (let i = 1; i < forecast.totalForecasts.length; i++) {
+                if (forecast.totalForecasts[i] > forecast.totalForecasts[peakIdx]) peakIdx = i;
+            }
+            document.getElementById('fc-peak-val').textContent = forecast.labels[peakIdx] || '—';
+            const peakEl = document.getElementById('fc-peak-change');
+            peakEl.textContent = formatCurrencyShort(forecast.totalForecasts[peakIdx]);
+            peakEl.className = 'kpi-change change-neutral';
+
+            // Average MoM growth
+            let momGrowthSum = 0, momCount = 0;
+            // Include transition from last actual to first forecast
+            const lastActual = originalData.total_monthly[originalData.total_monthly.length - 1];
+            if (lastActual > 0 && forecast.totalForecasts.length > 0) {
+                momGrowthSum += (forecast.totalForecasts[0] - lastActual) / lastActual * 100;
+                momCount++;
+            }
+            for (let i = 1; i < forecast.totalForecasts.length; i++) {
+                if (forecast.totalForecasts[i - 1] > 0) {
+                    momGrowthSum += (forecast.totalForecasts[i] - forecast.totalForecasts[i - 1]) / forecast.totalForecasts[i - 1] * 100;
+                    momCount++;
+                }
+            }
+            const avgMoM = momCount > 0 ? momGrowthSum / momCount : 0;
+            const growthEl = document.getElementById('fc-growth-val');
+            growthEl.textContent = `${avgMoM >= 0 ? '+' : ''}${avgMoM.toFixed(1)}%`;
+            const growthChangeEl = document.getElementById('fc-growth-change');
+            growthChangeEl.textContent = avgMoM >= 0 ? 'แนวโน้มเติบโต' : 'แนวโน้มลดลง';
+            growthChangeEl.className = 'kpi-change ' + (avgMoM >= 0 ? 'change-up' : 'change-down');
+
+            // ── Render Forecast Chart ──
+            renderForecastChart(forecast, branches);
+
+            // ── Render Forecast Table ──
+            renderForecastTable(forecast, branches);
+        };
+
+        const renderForecastChart = (forecast, branches) => {
+            if (forecastChartInstance) forecastChartInstance.destroy();
+
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+
+            // Combine last 6 actual months + forecast
+            const actualCount = Math.min(6, originalData.months.length);
+            const actualMonths = originalData.months.slice(-actualCount);
+            const actualTotals = [];
+            for (let i = originalData.months.length - actualCount; i < originalData.months.length; i++) {
+                actualTotals.push(branches.reduce((s, b) => s + (originalData.branches[b]?.[i] ?? 0), 0));
+            }
+
+            const allLabels = [...actualMonths, ...forecast.labels];
+            const actualLine = [...actualTotals, ...new Array(forecast.labels.length).fill(null)];
+
+            // Forecast line: starts from last actual point for continuity
+            const forecastLine = new Array(actualCount - 1).fill(null);
+            forecastLine.push(actualTotals[actualTotals.length - 1]); // bridge point
+            forecastLine.push(...forecast.totalForecasts);
+
+            // Confidence band
+            const upperBand = new Array(actualCount - 1).fill(null);
+            upperBand.push(actualTotals[actualTotals.length - 1]);
+            upperBand.push(...forecast.confidenceBand.upper);
+
+            const lowerBand = new Array(actualCount - 1).fill(null);
+            lowerBand.push(actualTotals[actualTotals.length - 1]);
+            lowerBand.push(...forecast.confidenceBand.lower);
+
+            // Gradients
+            const gradActual = ctx.createLinearGradient(0, 0, 0, 420);
+            gradActual.addColorStop(0, 'rgba(96, 165, 250, 0.2)');
+            gradActual.addColorStop(1, 'rgba(96, 165, 250, 0.0)');
+
+            const gradForecast = ctx.createLinearGradient(0, 0, 0, 420);
+            gradForecast.addColorStop(0, 'rgba(251, 191, 36, 0.15)');
+            gradForecast.addColorStop(1, 'rgba(251, 191, 36, 0.0)');
+
+            const gradConfidence = ctx.createLinearGradient(0, 0, 0, 420);
+            gradConfidence.addColorStop(0, 'rgba(251, 191, 36, 0.08)');
+            gradConfidence.addColorStop(1, 'rgba(251, 191, 36, 0.01)');
+
+            // Annotation line: divider between actual and forecast
+            const annotationIdx = actualCount - 1;
+
+            forecastChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allLabels,
+                    datasets: [
+                        {
+                            label: 'ยอดขายจริง',
+                            data: actualLine,
+                            borderColor: '#60a5fa',
+                            backgroundColor: gradActual,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#60a5fa',
+                            pointBorderColor: '#09090b',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            fill: true,
+                            tension: 0.4,
+                            order: 2
+                        },
+                        {
+                            label: 'คาดการณ์',
+                            data: forecastLine,
+                            borderColor: colors.forecast,
+                            backgroundColor: gradForecast,
+                            borderWidth: 3,
+                            borderDash: [8, 5],
+                            pointBackgroundColor: colors.forecast,
+                            pointBorderColor: '#09090b',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            fill: true,
+                            tension: 0.4,
+                            spanGaps: true,
+                            order: 3
+                        },
+                        {
+                            label: 'ช่วงความเชื่อมั่น (บน)',
+                            data: upperBand,
+                            borderColor: 'rgba(251, 191, 36, 0.25)',
+                            borderWidth: 1,
+                            borderDash: [3, 3],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4,
+                            spanGaps: true,
+                            order: 1
+                        },
+                        {
+                            label: 'ช่วงความเชื่อมั่น (ล่าง)',
+                            data: lowerBand,
+                            borderColor: 'rgba(251, 191, 36, 0.25)',
+                            borderWidth: 1,
+                            borderDash: [3, 3],
+                            pointRadius: 0,
+                            fill: '-1',
+                            backgroundColor: gradConfidence,
+                            tension: 0.4,
+                            spanGaps: true,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: 0 },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                ...commonPlugins.legend.labels,
+                                filter: (item) => !item.text.includes('ช่วงความเชื่อมั่น')
+                            }
+                        },
+                        tooltip: {
+                            ...commonPlugins.tooltip,
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label.includes('ช่วงความเชื่อมั่น')) return null;
+                                    let l = ctx.dataset.label || '';
+                                    if (l) l += ': ';
+                                    if (ctx.parsed.y !== null) l += formatCurrency(ctx.parsed.y);
+                                    return l;
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                forecastDivider: {
+                                    type: 'line',
+                                    xMin: annotationIdx,
+                                    xMax: annotationIdx,
+                                    borderColor: 'rgba(251, 191, 36, 0.5)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 4],
+                                    label: {
+                                        display: true,
+                                        content: '▸ เริ่มคาดการณ์',
+                                        position: 'start',
+                                        backgroundColor: 'rgba(251, 191, 36, 0.12)',
+                                        color: colors.forecast,
+                                        font: { size: 11, weight: 600 },
+                                        padding: { x: 8, y: 4 },
+                                        borderRadius: 6
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ...commonScales.y,
+                            beginAtZero: false,
+                            grace: '10%'
+                        },
+                        x: {
+                            ...commonScales.x,
+                            ticks: {
+                                ...commonScales.x.ticks,
+                                maxTicksLimit: 18
+                            }
+                        }
+                    },
+                    interaction: { mode: 'index', intersect: false }
+                }
+            });
+        };
+
+        const renderForecastTable = (forecast, branches) => {
+            const tbody = document.getElementById('forecast-tbody');
+            if (!tbody) return;
+
+            const selBranch = branchFilter.value;
+            const branchKeys = selBranch === 'all' ? Object.keys(originalData.branches) : [selBranch];
+
+            // Last 3 actual months for context
+            const actualCount = Math.min(3, originalData.months.length);
+            const rows = [];
+
+            // Actual rows
+            for (let i = originalData.months.length - actualCount; i < originalData.months.length; i++) {
+                const branchVals = {};
+                for (const b of branchKeys) {
+                    branchVals[b] = originalData.branches[b][i] || 0;
+                }
+                const total = branchKeys.reduce((s, b) => s + branchVals[b], 0);
+                rows.push({ label: originalData.months[i], isActual: true, branchVals, total });
+            }
+
+            // Forecast rows
+            for (let i = 0; i < forecast.labels.length; i++) {
+                const branchVals = {};
+                for (const b of branchKeys) {
+                    branchVals[b] = forecast.branchForecasts[b]?.[i] || 0;
+                }
+                const total = branchKeys.reduce((s, b) => s + branchVals[b], 0);
+                rows.push({ label: forecast.labels[i], isActual: false, branchVals, total });
+            }
+
+            // Calculate MoM %
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i - 1].total > 0) {
+                    rows[i].mom = ((rows[i].total - rows[i - 1].total) / rows[i - 1].total * 100);
+                }
+            }
+
+            // Build table header based on selected branches
+            const thead = document.querySelector('#forecastTable thead tr');
+            if (selBranch === 'all') {
+                thead.innerHTML = `
+                    <th>เดือน</th>
+                    <th class="text-right">อารีย์</th>
+                    <th class="text-right">เอกมัย</th>
+                    <th class="text-right">พระราม 9</th>
+                    <th class="text-right">บางแค</th>
+                    <th class="text-right fc-col-total">ยอดรวม</th>
+                    <th class="text-right">%MoM</th>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <th>เดือน</th>
+                    <th class="text-right">${branchNamesTh[selBranch]}</th>
+                    <th class="text-right fc-col-total">ยอดรวม</th>
+                    <th class="text-right">%MoM</th>
+                `;
+            }
+
+            tbody.innerHTML = rows.map(row => {
+                const tag = row.isActual
+                    ? '<span class="fc-label-tag fc-tag-actual">จริง</span>'
+                    : '<span class="fc-label-tag fc-tag-forecast">คาดการณ์</span>';
+
+                const momHtml = row.mom != null
+                    ? `<span class="kpi-change ${row.mom >= 0 ? 'change-up' : 'change-down'}" style="font-size:0.72rem;padding:0.15rem 0.45rem">
+                        ${row.mom >= 0 ? '↑' : '↓'} ${row.mom >= 0 ? '+' : ''}${row.mom.toFixed(1)}%
+                       </span>`
+                    : '<span style="color:var(--text-muted)">—</span>';
+
+                const branchCells = selBranch === 'all'
+                    ? ['Ari', 'Ekkamai', 'Rama9', 'BangKhae'].map(b =>
+                        `<td class="text-right">${formatCurrencyShort(row.branchVals[b] || 0)}</td>`
+                    ).join('')
+                    : `<td class="text-right">${formatCurrencyShort(row.branchVals[selBranch] || 0)}</td>`;
+
+                return `<tr class="${row.isActual ? '' : 'fc-row-forecast'}">
+                    <td>${row.label} ${tag}</td>
+                    ${branchCells}
+                    <td class="text-right" style="font-weight:600;color:var(--accent-amber)">${formatCurrencyShort(row.total)}</td>
+                    <td class="text-right">${momHtml}</td>
+                </tr>`;
+            }).join('');
+        };
+
         // ── Sync toFilter so it can't go before fromFilter ──
         fromFilter.addEventListener('change', () => {
             if (parseInt(toFilter.value) < parseInt(fromFilter.value))
@@ -525,6 +1029,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateDashboard();
         });
         branchFilter.addEventListener('change', updateDashboard);
+
+        // ── Forecast Controls ──
+        forecastHorizonEl.addEventListener('change', () => {
+            const branches = branchFilter.value === 'all' ? Object.keys(originalData.branches) : [branchFilter.value];
+            updateForecastSection(branches);
+        });
+        forecastMethodEl.addEventListener('change', () => {
+            const branches = branchFilter.value === 'all' ? Object.keys(originalData.branches) : [branchFilter.value];
+            updateForecastSection(branches);
+        });
 
         // ── Preset Shortcuts ──
         const clearActivePreset = () =>

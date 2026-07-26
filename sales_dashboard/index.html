@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -159,6 +160,111 @@
                         </thead>
                         <tbody id="ranking-tbody"></tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- ════════════════════════════════════════════
+                 FORECAST SECTION — คาดการณ์ยอดขายล่วงหน้า
+                 ════════════════════════════════════════════ -->
+            <section class="forecast-section" id="forecastSection">
+                <div class="forecast-section-header">
+                    <div class="forecast-title-area">
+                        <div class="forecast-icon-wrap">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        </div>
+                        <div>
+                            <h2>คาดการณ์ยอดขายล่วงหน้า</h2>
+                            <p class="forecast-subtitle">Sales Forecast · พยากรณ์ถึงปี 2570</p>
+                        </div>
+                    </div>
+                    <div class="forecast-controls">
+                        <div class="filter-pill">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <select id="forecastHorizon">
+                                <option value="3">3 เดือน</option>
+                                <option value="6" selected>6 เดือน</option>
+                                <option value="12">12 เดือน</option>
+                                <option value="max">ถึง ธ.ค./2570</option>
+                            </select>
+                        </div>
+                        <div class="filter-pill">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                            <select id="forecastMethod">
+                                <option value="seasonal">Seasonal YoY</option>
+                                <option value="linear">Linear Trend</option>
+                                <option value="moving_avg">Moving Average</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forecast KPI Summary -->
+                <div class="forecast-kpi-grid">
+                    <div class="kpi-card forecast-kpi">
+                        <div class="kpi-header">
+                            <span class="kpi-label">ยอดคาดการณ์รวม</span>
+                            <div class="kpi-icon icon-fc-total">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                        </div>
+                        <p class="kpi-value" id="fc-total-val">—</p>
+                        <span class="kpi-change" id="fc-total-change"></span>
+                    </div>
+                    <div class="kpi-card forecast-kpi">
+                        <div class="kpi-header">
+                            <span class="kpi-label">เดือนที่คาดว่าขายดีที่สุด</span>
+                            <div class="kpi-icon icon-fc-peak">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </div>
+                        </div>
+                        <p class="kpi-value" id="fc-peak-val">—</p>
+                        <span class="kpi-change" id="fc-peak-change"></span>
+                    </div>
+                    <div class="kpi-card forecast-kpi">
+                        <div class="kpi-header">
+                            <span class="kpi-label">อัตราเติบโตเฉลี่ย (MoM)</span>
+                            <div class="kpi-icon icon-fc-growth">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            </div>
+                        </div>
+                        <p class="kpi-value" id="fc-growth-val">—</p>
+                        <span class="kpi-change" id="fc-growth-change"></span>
+                    </div>
+                </div>
+
+                <!-- Forecast Chart -->
+                <div class="bento-card bento-wide forecast-chart-card">
+                    <div class="bento-header">
+                        <h2>กราฟคาดการณ์ยอดขาย</h2>
+                        <span class="bento-badge badge-forecast">Forecast</span>
+                    </div>
+                    <div class="canvas-wrapper forecast-canvas-wrapper">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Forecast Detail Table -->
+                <div class="bento-card bento-wide forecast-table-card">
+                    <div class="bento-header">
+                        <h2>รายละเอียดยอดคาดการณ์รายเดือน</h2>
+                        <span class="bento-badge badge-forecast">Detail</span>
+                    </div>
+                    <div class="forecast-table-wrapper">
+                        <table class="ranking-table forecast-table" id="forecastTable">
+                            <thead>
+                                <tr>
+                                    <th>เดือน</th>
+                                    <th class="text-right">อารีย์</th>
+                                    <th class="text-right">เอกมัย</th>
+                                    <th class="text-right">พระราม 9</th>
+                                    <th class="text-right">บางแค</th>
+                                    <th class="text-right fc-col-total">ยอดรวม</th>
+                                    <th class="text-right">%MoM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-tbody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>

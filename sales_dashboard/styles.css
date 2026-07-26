@@ -545,6 +545,166 @@ body {
     text-transform: uppercase;
 }
 
+/* ─── Forecast Section ─── */
+.forecast-section {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.forecast-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+
+.forecast-title-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.forecast-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-amber);
+    flex-shrink: 0;
+}
+
+.forecast-section-header h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+.forecast-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin-top: 0.15rem;
+}
+
+.forecast-controls {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+/* Forecast KPI Grid */
+.forecast-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.forecast-kpi {
+    border-left: 3px solid transparent;
+    transition: border-color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+}
+
+.forecast-kpi:nth-child(1) { border-left-color: rgba(251, 191, 36, 0.4); }
+.forecast-kpi:nth-child(2) { border-left-color: rgba(167, 139, 250, 0.4); }
+.forecast-kpi:nth-child(3) { border-left-color: rgba(74, 222, 128, 0.4); }
+
+.icon-fc-total {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--accent-amber);
+}
+
+.icon-fc-peak {
+    background: rgba(167, 139, 250, 0.1);
+    color: var(--accent-purple);
+}
+
+.icon-fc-growth {
+    background: rgba(74, 222, 128, 0.1);
+    color: var(--accent-green);
+}
+
+/* Forecast Badge */
+.badge-forecast {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.06));
+    color: var(--accent-amber);
+}
+
+/* Forecast Chart Card */
+.forecast-chart-card {
+    margin-bottom: 1.25rem;
+}
+
+.forecast-canvas-wrapper {
+    flex: 0 0 420px;
+    height: 420px;
+}
+
+/* Forecast Table */
+.forecast-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.forecast-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-surface);
+    z-index: 1;
+}
+
+.fc-col-total {
+    color: var(--accent-amber) !important;
+    font-weight: 700 !important;
+}
+
+.forecast-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.forecast-table tbody tr:hover {
+    background: var(--bg-surface-hover);
+}
+
+.forecast-table .fc-row-forecast {
+    background: rgba(251, 191, 36, 0.03);
+}
+
+.forecast-table .fc-row-forecast:hover {
+    background: rgba(251, 191, 36, 0.07);
+}
+
+.fc-label-tag {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0.12rem 0.45rem;
+    border-radius: 50px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.fc-tag-actual {
+    background: rgba(96, 165, 250, 0.1);
+    color: var(--accent-blue);
+}
+
+.fc-tag-forecast {
+    background: rgba(251, 191, 36, 0.12);
+    color: var(--accent-amber);
+}
+
 /* ─── Animations ─── */
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -570,6 +730,9 @@ body {
     .bento-grid {
         grid-template-columns: 1fr;
     }
+    .forecast-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
@@ -592,5 +755,23 @@ body {
 
     .canvas-wrapper {
         height: 280px;
+    }
+
+    .forecast-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .forecast-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .forecast-canvas-wrapper {
+        flex: 0 0 280px;
+        height: 280px;
+    }
+
+    .forecast-table {
+        font-size: 0.78rem;
     }
 }
