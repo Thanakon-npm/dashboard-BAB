@@ -36,7 +36,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: var(--bg-base);
     color: var(--text-primary);
     min-height: 100vh;
@@ -520,14 +520,15 @@ body {
 
 .canvas-wrapper {
     position: relative;
-    height: 420px; /* Base height for small charts */
+    height: 480px; /* Base height for small charts */
     width: 100%;
     flex: 1;
+    min-height: 400px;
 }
 
 .bento-wide .canvas-wrapper {
-    flex: 0 0 380px; /* Taller height for the wide trend chart, don't shrink */
-    height: 380px;
+    flex: 0 0 460px; /* Taller height for the wide trend chart, don't shrink */
+    height: 460px;
 }
 
 /* ─── Footer ─── */
@@ -645,8 +646,8 @@ body {
 }
 
 .forecast-canvas-wrapper {
-    flex: 0 0 420px;
-    height: 420px;
+    flex: 0 0 480px;
+    height: 480px;
 }
 
 /* Forecast Table */
@@ -754,7 +755,8 @@ body {
     }
 
     .canvas-wrapper {
-        height: 280px;
+        height: 340px;
+        min-height: 300px;
     }
 
     .forecast-section-header {
@@ -767,8 +769,8 @@ body {
     }
 
     .forecast-canvas-wrapper {
-        flex: 0 0 280px;
-        height: 280px;
+        flex: 0 0 340px;
+        height: 340px;
     }
 
     .forecast-table {

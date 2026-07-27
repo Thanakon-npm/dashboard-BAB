@@ -276,19 +276,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Chart.js Global Defaults
         Chart.defaults.color = colors.textSecondary;
-        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.font.family = "'Inter', 'Noto Sans Thai', sans-serif";
         Chart.defaults.font.weight = 500;
+        Chart.defaults.layout = { padding: { top: 8, right: 16, bottom: 8, left: 8 } };
 
         const getCommonScales = () => ({
             y: {
                 beginAtZero: false,
-                grace: '5%',
+                grace: '15%',
                 grid: { color: colors.gridColor, drawBorder: false, borderDash: [4, 4] },
                 border: { display: false },
                 ticks: {
                     font: { size: 12, weight: 500 },
                     color: colors.textSecondary,
-                    padding: 12,
+                    padding: 16,
                     maxTicksLimit: 5,
                     callback: function(value) {
                         if (value >= 1000000) return '฿' + new Intl.NumberFormat('th-TH', { maximumFractionDigits: 1 }).format(value / 1000000) + 'M';
@@ -300,7 +301,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             x: {
                 grid: { display: false, drawBorder: false },
                 border: { display: false },
-                ticks: { font: { size: 11, weight: 500 }, color: colors.textSecondary, padding: 8, maxRotation: 45, minRotation: 30, autoSkip: true, maxTicksLimit: 12 }
+                ticks: {
+                    font: { size: 11, weight: 500 },
+                    color: colors.textSecondary,
+                    padding: 12,
+                    maxRotation: 0,
+                    minRotation: 0,
+                    align: 'center',
+                    crossAlign: 'center',
+                    textAlign: 'center',
+                    autoSkip: true,
+                    maxTicksLimit: 12,
+                    callback: function(value, index, ticks) {
+                        const label = this.getLabelForValue(value);
+                        if (!label) return label;
+                        const parts = label.split('/');
+                        if (parts.length === 2) {
+                            return [parts[0].trim(), parts[1].trim()];
+                        }
+                        return label;
+                    }
+                }
             }
         });
 
@@ -605,7 +626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: 0 },
+                    layout: { padding: { top: 16, right: 24, bottom: 16, left: 12 } },
                     plugins: {
                         ...getCommonPlugins(),
                         legend: { display: !isSingleMonth, labels: { ...getCommonPlugins().legend.labels } }
@@ -619,7 +640,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             ticks: {
                                 font: { size: 12, weight: 500 },
                                 color: colors.textSecondary,
-                                padding: 12,
+                                padding: 16,
                                 stepSize: isSingleMonth ? undefined : 1000000,
                                 maxTicksLimit: 6,
                                 autoSkip: false,
@@ -664,7 +685,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: 0 },
+                    layout: { padding: { top: 16, right: 24, bottom: 16, left: 12 } },
                     plugins: {
                         ...getCommonPlugins(),
                         legend: { display: !isSingleBranch && !isSingleMonth, labels: { ...getCommonPlugins().legend.labels } },
@@ -896,7 +917,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: 0 },
+                    layout: { padding: { top: 16, right: 24, bottom: 16, left: 12 } },
                     plugins: {
                         legend: {
                             labels: {
