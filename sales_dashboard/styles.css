@@ -775,3 +775,372 @@ body {
         font-size: 0.78rem;
     }
 }
+
+/* ─── Theme Toggle Button ─── */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 50px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    letter-spacing: 0.2px;
+}
+
+.theme-toggle:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+}
+
+/* Dark mode (default): show sun icon, hide moon */
+.theme-toggle .theme-icon-sun {
+    display: block;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.theme-toggle .theme-icon-moon {
+    display: none;
+}
+
+.theme-toggle:hover .theme-icon-sun {
+    opacity: 0.8;
+}
+
+/* Light mode active: show moon icon, hide sun */
+.theme-toggle.active .theme-icon-sun {
+    display: none;
+}
+
+.theme-toggle.active .theme-icon-moon {
+    display: block;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════
+   LIGHT MODE THEME
+   ═══════════════════════════════════════════ */
+body.light-mode {
+    --bg-base: #f5f5f7;
+    --bg-surface: rgba(255, 255, 255, 0.85);
+    --bg-surface-hover: rgba(255, 255, 255, 1);
+    --border: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.15);
+    --text-primary: #1a1a2e;
+    --text-secondary: #52525b;
+    --text-muted: #71717a;
+
+    /* Accent Colors — slightly deeper for white bg readability */
+    --accent-blue: #3b82f6;
+    --accent-pink: #ec4899;
+    --accent-green: #22c55e;
+    --accent-amber: #f59e0b;
+    --accent-purple: #8b5cf6;
+
+    /* Branch Colors */
+    --color-ari: #ec4899;
+    --color-ekkamai: #8b5cf6;
+    --color-rama9: #22c55e;
+    --color-bangkhae: #f59e0b;
+}
+
+/* Background & global */
+body.light-mode {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+}
+
+/* Ambient glow — softer on light */
+body.light-mode .ambient-glow {
+    opacity: 0.25;
+}
+
+body.light-mode .glow-1 {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.08), transparent 70%);
+}
+
+body.light-mode .glow-2 {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.06), transparent 70%);
+}
+
+/* Logo */
+body.light-mode .logo-mark {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+}
+
+/* Top bar text */
+body.light-mode .top-bar h1 {
+    color: var(--text-primary);
+}
+
+body.light-mode .subtitle {
+    color: var(--text-muted);
+}
+
+/* Filter pills */
+body.light-mode .filter-pill {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-secondary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode .filter-pill:hover {
+    border-color: rgba(0, 0, 0, 0.18);
+    background: #fff;
+}
+
+body.light-mode .filter-pill:focus-within {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+body.light-mode .filter-pill select {
+    color: var(--text-primary);
+}
+
+body.light-mode .filter-pill select option {
+    background-color: #fff;
+    color: var(--text-primary);
+}
+
+/* Theme toggle in light mode */
+body.light-mode .theme-toggle {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-secondary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode .theme-toggle:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.18);
+    color: var(--text-primary);
+}
+
+body.light-mode .theme-toggle.active {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.25);
+    color: var(--accent-blue);
+}
+
+/* Preset buttons */
+body.light-mode .preset-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: var(--text-secondary);
+}
+
+body.light-mode .preset-btn:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.15);
+    color: var(--text-primary);
+}
+
+body.light-mode .preset-btn.active {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: var(--accent-blue);
+}
+
+/* KPI Cards */
+body.light-mode .kpi-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode .kpi-card::before {
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.03), transparent);
+}
+
+body.light-mode .kpi-card:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .kpi-label {
+    color: var(--text-secondary);
+}
+
+body.light-mode .kpi-value {
+    color: var(--text-primary);
+}
+
+body.light-mode .icon-total {
+    background: rgba(236, 72, 153, 0.08);
+    color: var(--accent-pink);
+}
+
+body.light-mode .icon-avg {
+    background: rgba(139, 92, 246, 0.08);
+    color: var(--accent-purple);
+}
+
+body.light-mode .icon-best {
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--accent-green);
+}
+
+body.light-mode .icon-forecast {
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--accent-amber);
+}
+
+/* Change badges */
+body.light-mode .change-up {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+}
+
+body.light-mode .change-down {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+body.light-mode .change-neutral {
+    background: rgba(82, 82, 91, 0.08);
+    color: var(--text-secondary);
+}
+
+/* Bento Cards */
+body.light-mode .bento-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode .bento-card::before {
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.03), transparent);
+}
+
+body.light-mode .bento-card:hover {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: #fff;
+}
+
+body.light-mode .bento-header h2 {
+    color: var(--text-primary);
+}
+
+/* Badges */
+body.light-mode .bento-badge {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--accent-blue);
+}
+
+body.light-mode .badge-purple {
+    background: rgba(139, 92, 246, 0.08);
+    color: var(--accent-purple);
+}
+
+body.light-mode .badge-green {
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--accent-green);
+}
+
+body.light-mode .badge-amber {
+    background: rgba(245, 158, 11, 0.08);
+    color: var(--accent-amber);
+}
+
+body.light-mode .badge-forecast {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.04));
+    color: var(--accent-amber);
+}
+
+/* Ranking Table */
+body.light-mode .ranking-table thead th {
+    color: var(--text-muted);
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .ranking-table tbody tr {
+    border-bottom-color: rgba(0, 0, 0, 0.04);
+}
+
+body.light-mode .ranking-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.03);
+}
+
+body.light-mode .ranking-table td {
+    color: var(--text-primary);
+}
+
+body.light-mode .rank-num {
+    color: var(--text-muted);
+}
+
+body.light-mode .share-bar {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* Forecast Section */
+body.light-mode .forecast-section {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .forecast-icon-wrap {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.04));
+    color: var(--accent-amber);
+}
+
+body.light-mode .forecast-section-header h2 {
+    color: var(--text-primary);
+}
+
+body.light-mode .forecast-subtitle {
+    color: var(--text-muted);
+}
+
+body.light-mode .forecast-kpi:nth-child(1) { border-left-color: rgba(245, 158, 11, 0.35); }
+body.light-mode .forecast-kpi:nth-child(2) { border-left-color: rgba(139, 92, 246, 0.35); }
+body.light-mode .forecast-kpi:nth-child(3) { border-left-color: rgba(34, 197, 94, 0.35); }
+
+body.light-mode .icon-fc-total  { background: rgba(245, 158, 11, 0.08); color: var(--accent-amber); }
+body.light-mode .icon-fc-peak   { background: rgba(139, 92, 246, 0.08); color: var(--accent-purple); }
+body.light-mode .icon-fc-growth { background: rgba(34, 197, 94, 0.08);  color: var(--accent-green); }
+
+body.light-mode .fc-col-total { color: var(--accent-amber) !important; }
+
+body.light-mode .fc-tag-actual {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--accent-blue);
+}
+
+body.light-mode .fc-tag-forecast {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--accent-amber);
+}
+
+body.light-mode .fc-row-forecast      { background: rgba(245, 158, 11, 0.02); }
+body.light-mode .fc-row-forecast:hover { background: rgba(245, 158, 11, 0.06); }
+
+body.light-mode .forecast-table th {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+body.light-mode .forecast-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.03);
+}
+
+/* Footer */
+body.light-mode .dashboard-footer {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .dashboard-footer p {
+    color: var(--text-muted);
+}

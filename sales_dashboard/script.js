@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('data.json');
         const originalData = await response.json();
 
-        const colors = {
+        const colorsDark = {
             ari: '#f472b6',
             ekkamai: '#a78bfa',
             rama9: '#4ade80',
@@ -11,16 +11,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             textPrimary: '#fafafa',
             textSecondary: '#a1a1aa',
             forecast: '#fbbf24',
-            yoy: 'rgba(161, 161, 170, 0.45)'
+            yoy: 'rgba(161, 161, 170, 0.45)',
+            bgBase: '#09090b',
+            gridColor: 'rgba(255, 255, 255, 0.08)',
+            tooltipBg: 'rgba(24, 24, 27, 0.95)',
+            tooltipBorder: 'rgba(255,255,255,0.08)'
         };
 
+        const colorsLight = {
+            ari: '#ec4899',
+            ekkamai: '#8b5cf6',
+            rama9: '#22c55e',
+            bangkhae: '#f59e0b',
+            textPrimary: '#1a1a2e',
+            textSecondary: '#52525b',
+            forecast: '#f59e0b',
+            yoy: 'rgba(100, 100, 110, 0.4)',
+            bgBase: '#f5f5f7',
+            gridColor: 'rgba(0, 0, 0, 0.07)',
+            tooltipBg: 'rgba(255, 255, 255, 0.96)',
+            tooltipBorder: 'rgba(0, 0, 0, 0.08)'
+        };
+
+        let isLightMode = localStorage.getItem('dashboard-theme') === 'light';
+        let colors = isLightMode ? { ...colorsLight } : { ...colorsDark };
+
+        // Apply initial theme state
+        if (isLightMode) {
+            document.body.classList.add('light-mode');
+        }
+
         const branchNamesTh = { Ari: 'อารีย์', Ekkamai: 'เอกมัย', Rama9: 'พระราม 9', BangKhae: 'บางแค' };
-        const datasetConfigs = {
+        const getDatasetConfigs = () => ({
             Ari:      { label: 'อารีย์',   color: colors.ari },
             Ekkamai:  { label: 'เอกมัย',   color: colors.ekkamai },
             Rama9:    { label: 'พระราม 9', color: colors.rama9 },
             BangKhae: { label: 'บางแค',    color: colors.bangkhae }
-        };
+        });
+        let datasetConfigs = getDatasetConfigs();
 
         // ── Thai month names for generating future labels ──
         const thaiMonthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -251,15 +279,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.font.weight = 500;
 
-        const commonScales = {
+        const getCommonScales = () => ({
             y: {
                 beginAtZero: false,
                 grace: '5%',
-                grid: { color: 'rgba(255, 255, 255, 0.08)', drawBorder: false, borderDash: [4, 4] },
+                grid: { color: colors.gridColor, drawBorder: false, borderDash: [4, 4] },
                 border: { display: false },
                 ticks: {
                     font: { size: 12, weight: 500 },
-                    color: '#a1a1aa',
+                    color: colors.textSecondary,
                     padding: 12,
                     maxTicksLimit: 5,
                     callback: function(value) {
@@ -272,19 +300,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             x: {
                 grid: { display: false, drawBorder: false },
                 border: { display: false },
-                ticks: { font: { size: 11, weight: 500 }, color: '#a1a1aa', padding: 8, maxRotation: 45, minRotation: 30, autoSkip: true, maxTicksLimit: 12 }
+                ticks: { font: { size: 11, weight: 500 }, color: colors.textSecondary, padding: 8, maxRotation: 45, minRotation: 30, autoSkip: true, maxTicksLimit: 12 }
             }
-        };
+        });
 
-        const commonPlugins = {
+        const getCommonPlugins = () => ({
             legend: {
                 labels: { color: colors.textPrimary, padding: 16, usePointStyle: true, pointStyleWidth: 10, font: { size: 12, weight: 500 } }
             },
             tooltip: {
-                backgroundColor: 'rgba(24, 24, 27, 0.95)',
+                backgroundColor: colors.tooltipBg,
                 titleColor: colors.textPrimary,
                 bodyColor: colors.textSecondary,
-                borderColor: 'rgba(255,255,255,0.08)',
+                borderColor: colors.tooltipBorder,
                 borderWidth: 1,
                 padding: 14,
                 cornerRadius: 10,
@@ -300,7 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             }
-        };
+        });
 
         // DOM
         const branchFilter = document.getElementById('branchFilter');
@@ -533,7 +561,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     backgroundColor: grad,
                     borderWidth: 3,
                     pointBackgroundColor: '#60a5fa',
-                    pointBorderColor: '#09090b',
+                    pointBorderColor: colors.bgBase,
                     pointBorderWidth: 2,
                     pointRadius: 5,
                     pointHoverRadius: 7,
@@ -547,7 +575,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     borderWidth: 2.5,
                     borderDash: [6, 4],
                     pointBackgroundColor: colors.forecast,
-                    pointBorderColor: '#09090b',
+                    pointBorderColor: colors.bgBase,
                     pointBorderWidth: 2,
                     pointRadius: 5,
                     fill: false,
@@ -579,18 +607,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     maintainAspectRatio: false,
                     layout: { padding: 0 },
                     plugins: {
-                        ...commonPlugins,
-                        legend: { display: !isSingleMonth, labels: { ...commonPlugins.legend.labels } }
+                        ...getCommonPlugins(),
+                        legend: { display: !isSingleMonth, labels: { ...getCommonPlugins().legend.labels } }
                     },
                     scales: {
                         y: {
                             min: 0,
                             max: isSingleMonth ? undefined : 5000000,
-                            grid: { color: 'rgba(255, 255, 255, 0.08)', drawBorder: false, borderDash: [4, 4] },
+                            grid: { color: colors.gridColor, drawBorder: false, borderDash: [4, 4] },
                             border: { display: false },
                             ticks: {
                                 font: { size: 12, weight: 500 },
-                                color: '#a1a1aa',
+                                color: colors.textSecondary,
                                 padding: 12,
                                 stepSize: isSingleMonth ? undefined : 1000000,
                                 maxTicksLimit: 6,
@@ -598,7 +626,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 callback: (v) => '฿' + (v / 1000000) + 'M'
                             }
                         },
-                        x: commonScales.x
+                        x: getCommonScales().x
                     },
                     interaction: { mode: 'index', intersect: false }
                 }
@@ -627,7 +655,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         borderWidth: 2.5,
                         pointRadius: 4,
                         pointBackgroundColor: datasetConfigs[b].color,
-                        pointBorderColor: '#09090b',
+                        pointBorderColor: colors.bgBase,
                         pointBorderWidth: 2,
                         tension: 0.4,
                         fill: false
@@ -638,8 +666,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     maintainAspectRatio: false,
                     layout: { padding: 0 },
                     plugins: {
-                        ...commonPlugins,
-                        legend: { display: !isSingleBranch && !isSingleMonth, labels: { ...commonPlugins.legend.labels } },
+                        ...getCommonPlugins(),
+                        legend: { display: !isSingleBranch && !isSingleMonth, labels: { ...getCommonPlugins().legend.labels } },
                         title: isSingleBranch && !isSingleMonth ? {
                             display: true,
                             text: 'เลือก "ทุกสาขา" เพื่อเปรียบเทียบ',
@@ -648,7 +676,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             padding: { top: 10, bottom: 10 }
                         } : {}
                     },
-                    scales: commonScales,
+                    scales: getCommonScales(),
                     interaction: { mode: 'index', intersect: false }
                 }
             });
@@ -667,7 +695,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 type: 'doughnut',
                 data: {
                     labels: dL,
-                    datasets: [{ data: dV, backgroundColor: dC, borderColor: '#09090b', borderWidth: 3, hoverOffset: 8 }]
+                    datasets: [{ data: dV, backgroundColor: dC, borderColor: colors.bgBase, borderWidth: 3, hoverOffset: 8 }]
                 },
                 options: {
                     responsive: true,
@@ -679,7 +707,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             labels: { color: colors.textPrimary, padding: 18, usePointStyle: true, pointStyleWidth: 10, font: { size: 13, weight: 500 } }
                         },
                         tooltip: {
-                            ...commonPlugins.tooltip,
+                            ...getCommonPlugins().tooltip,
                             callbacks: {
                                 label: function(ctx) {
                                     const v   = ctx.parsed;
@@ -813,7 +841,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             backgroundColor: gradActual,
                             borderWidth: 3,
                             pointBackgroundColor: '#60a5fa',
-                            pointBorderColor: '#09090b',
+                            pointBorderColor: colors.bgBase,
                             pointBorderWidth: 2,
                             pointRadius: 5,
                             pointHoverRadius: 7,
@@ -829,7 +857,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             borderWidth: 3,
                             borderDash: [8, 5],
                             pointBackgroundColor: colors.forecast,
-                            pointBorderColor: '#09090b',
+                            pointBorderColor: colors.bgBase,
                             pointBorderWidth: 2,
                             pointRadius: 5,
                             pointHoverRadius: 7,
@@ -872,12 +900,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     plugins: {
                         legend: {
                             labels: {
-                                ...commonPlugins.legend.labels,
+                                ...getCommonPlugins().legend.labels,
                                 filter: (item) => !item.text.includes('ช่วงความเชื่อมั่น')
                             }
                         },
                         tooltip: {
-                            ...commonPlugins.tooltip,
+                            ...getCommonPlugins().tooltip,
                             callbacks: {
                                 label: function(ctx) {
                                     if (ctx.dataset.label.includes('ช่วงความเชื่อมั่น')) return null;
@@ -913,14 +941,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     },
                     scales: {
                         y: {
-                            ...commonScales.y,
+                            ...getCommonScales().y,
                             beginAtZero: false,
                             grace: '10%'
                         },
                         x: {
-                            ...commonScales.x,
+                            ...getCommonScales().x,
                             ticks: {
-                                ...commonScales.x.ticks,
+                                ...getCommonScales().x.ticks,
                                 maxTicksLimit: 18
                             }
                         }
@@ -1053,6 +1081,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updateDashboard();
             });
         });
+
+        // ── Theme Toggle (Light / Dark) ──
+        const themeToggle = document.getElementById('themeToggle');
+        const themeLabelEl = themeToggle?.querySelector('.theme-label');
+        if (themeToggle) {
+            // Sync initial button state
+            if (isLightMode) {
+                themeToggle.classList.add('active');
+                if (themeLabelEl) themeLabelEl.textContent = 'Dark';
+            }
+
+            themeToggle.addEventListener('click', () => {
+                isLightMode = !isLightMode;
+                localStorage.setItem('dashboard-theme', isLightMode ? 'light' : 'dark');
+                document.body.classList.toggle('light-mode', isLightMode);
+                themeToggle.classList.toggle('active', isLightMode);
+
+                // Update button label
+                if (themeLabelEl) themeLabelEl.textContent = isLightMode ? 'Dark' : 'Light';
+
+                // Swap color palette
+                Object.assign(colors, isLightMode ? colorsLight : colorsDark);
+                datasetConfigs = getDatasetConfigs();
+
+                // Update Chart.js global defaults
+                Chart.defaults.color = colors.textSecondary;
+
+                // Re-render everything
+                updateDashboard();
+            });
+        }
 
         updateDashboard();
 
